@@ -12,7 +12,7 @@ setmetatable(Intellect,{
 });
 
 --> Game Modules
-local TS=require(RepStore.TS);
+getgenv().TS=require(RepStore.TS);
 TS.Timer:UnbindFromStep'CharacterAnimate';
 
 getgenv().GUISettings={Rounds={Borders=false},Enemies={HitboxExtender=false,HitboxVisibility=false,Radar=false,ESP=false,},Settings={ToggleUIKey='RightShift',AutoSaveConfiguration=false},Character={Noclip=false,InfiniteJump=false,CurrentWalkSpeed=24,SprintSpeed=14,JumpPower=36},Gore={GibEnabled=false,BloodEnabled=false},Weapons={NoSpread=false,KillAll=false,KnifeAura=false,RequireKnife=false,NoRecoil=false,AllWeaponsAuto=false,InfiniteAmmo=false,NoBulletDrop=false,RapidAim=false,RapidFire=false,Aimbot={TriggerBot=false},SilentAim={Enabled=false,Type='Distance',AimPart='Head'}}}
@@ -30,6 +30,151 @@ end);
 
 Intellect.GameVersion=MarketplaceService:GetProductInfo(game.PlaceId).Name:split(' ')[5];
 Intellect.Weapons.OldBulletDrop={};
+
+
+--> Renames Modules
+local RepStoreChildren=RepStore:GetChildren();
+for i=1,#RepStoreChildren do
+    local Module=RepStoreChildren[i];
+    if Module.Name==' 'and#Module:GetChildren()>3 then 
+        Module.Name='Modules';
+    end;
+end;
+
+
+Connections['Infinite-Jump']=UIS.InputBegan:Connect(function(Key,Processed)
+    if Key.KeyCode==Enum.KeyCode.Space and not Processed and TS.Characters:GetCharacter(LP)then
+        local Character=TS.Characters:GetCharacter(LP);
+        if Debounce then return end;
+        if GUISettings.Character.InfiniteJump then
+            Debounce=true;
+            repeat task.wait()Character.Root.Velocity=Vector3.new(Character.Root.Velocity.X,GUISettings.Character.JumpPower,Character.Root.Velocity.Z);until not UIS:IsKeyDown(Enum.KeyCode.Space)
+            Debounce=false;
+        end;
+    end;
+end);
+
+local gc=getgc();
+for i=1,#gc do
+    if type(gc[i])=='function'and getinfo(gc[i]).name=='WalkingForward'then
+        Intellect.Character.WalkFunction=gc[i];
+    end;
+end;
+
+local Modules=RepStore.Modules:GetChildren();
+for i=1,#Modules do 
+    local ModuleScript=Modules[i];
+    local Module=require(ModuleScript);
+    if Module.CastGeometryAndEnemies then ModuleScript.Name='Raycast'end;
+    if Module.FireAll then ModuleScript.Name='Network'end;
+    if Module.Lerper then ModuleScript.Name='Math'end;
+    if Module.Modal then ModuleScript.Name='Input'end;
+    if Module.Schedule then ModuleScript.Name='Timer'end;
+    if Module.GetTeams then ModuleScript.Name='Teams'end;
+    if Module.DamageCharacter then ModuleScript.Name='Damage'end;
+    if Module.LoadCharacter then ModuleScript.Name='Characters'end;
+    if Module.Recoil then ModuleScript.Name='Camera'end;
+    if Module.AddProjectile then ModuleScript.Name='Projectiles'end;
+    if Module.Effect then ModuleScript.Name='Effects'end;
+    if Module.Sounds then ModuleScript.Name='UI'end;
+    if Module.CurrentWeapon then ModuleScript.Name='Menu'end;
+    if Module.MaxLevel then ModuleScript.Name='Levels'end;
+    if Module.MoveInput then ModuleScript.Name='Mobile'end;
+    if Module.Paint then ModuleScript.Name='Skins'end;
+    if Module.GivePlayerLoadout then ModuleScript.Name='Items'end;
+    if Module.Attach then ModuleScript.Name='Charms'end;
+    if Module.GetFrame then ModuleScript.Name='Profiles'end;
+    if Module.Apply then ModuleScript.Name='Stickers'end;
+    if Module.Stages then ModuleScript.Name='Skybox?'end;
+    if Module.EquipArms then ModuleScript.Name='Clothing'end;
+    if Module.NameDisplayMode then ModuleScript.Name='Players'end;
+end;
+
+hookfunction(require(RepStore.Modules.Timer).Wait,function(_,Time)
+    local Start=tick();
+    Time=(GUISettings.Weapons.RapidFire and Time-.05)or Time;
+    while game:GetService'RunService'.Stepped:Wait()do
+        if Time<=tick()-Start then
+            break;
+        end;
+    end;
+    return tick()-Start;
+end);
+
+
+task.delay(2,function()
+    lstring([[
+    local Args={...};
+    local Intellect,TS,GUISettings=Args[1],Args[2],Args[3];
+    Intellect.UI.Loaded=true;
+    repeat task.wait()
+        if TS.Characters:GetCharacter(game.Players.LocalPlayer)and TS.Characters:GetCharacter(game.Players.LocalPlayer):FindFirstChild'Root'then
+            local Character=TS.Characters:GetCharacter(game.Players.LocalPlayer)
+            local WalkSpeed=Character.Root.CFrame.lookVector;
+            local walkSpeedPower=0;
+            if game:GetService'UserInputService':IsKeyDown(Enum.KeyCode.LeftShift)then
+                walkSpeedPower=GUISettings.Character.CurrentWalkSpeed+GUISettings.Character.SprintSpeed;
+            else
+                walkSpeedPower=GUISettings.Character.CurrentWalkSpeed;
+            end;
+            if walkSpeedPower>200 then
+                walkSpeedPower=150;
+            end;
+            if not Intellect.Character:IsWalking()then
+                    Character.State.Stance.Value='Stand'
+                    setupvalue(Intellect.Character.WalkFunction,3,Vector3.new(0,0,0));
+                elseif Intellect.Character:IsWalking()then
+                if Intellect.Character:IsWalking()==Enum.KeyCode.W then
+                    setupvalue(Intellect.Character.WalkFunction,3,WalkSpeed*walkSpeedPower);
+                elseif Intellect.Character:IsWalking()==Enum.KeyCode.S then
+                    setupvalue(Intellect.Character.WalkFunction,3,-WalkSpeed*walkSpeedPower);
+                end;
+            end;
+        end;
+    until not Intellect.UI.Loaded;]])(Intellect,TS,GUISettings);
+end);
+
+lstring([[
+local Args={...}
+local TS,GUISettings,Intellect=Args[1],Args[2],Args[3];
+local SilentAim;
+SilentAim=hookmetamethod(game,'__namecall',function(...)
+    local Method=getnamecallmethod();
+    local argss={...};
+    if Method=='FireServer'and tostring(...)=='Projectiles'and Intellect.Character:GetLocalCharacter()and GUISettings.Weapons.SilentAim.Enabled then 
+        local Character,Player=(GUISettings.Weapons.SilentAim.Type=='Mouse'and Intellect.Enemies:FindNearestTargetToMouse())or Intellect.Enemies:FindNearestTarget();
+        if Character then
+            local Part=(GUISettings.Weapons.SilentAim.AimPart=='Random'and Intellect.Aimbot:GetRandomPart(Character.Hitbox))or Character.Hitbox:FindFirstChild(tostring(GUISettings.Weapons.SilentAim.AimPart));
+            task.spawn(function()
+                pcall(function()
+                    local Health=Character.Health.Value;
+                    task.wait(.2);
+                    if Character.Health.Value<Health then
+                        TS.UI.Events.Hitmarker:Fire(Part);
+                    end;
+                end);
+            end);
+            rawset(argss,4,Part.CFrame.p);
+            rawset(argss,5,Part);
+            rawset(argss,6,Vector3.new());
+            rawset(argss,7,Player);
+        end;
+    end;setnamecallmethod(Method);
+    return SilentAim(unpack(argss));
+end)]])(TS,GUISettings,Intellect);
+
+Connections['ImpactPoints']=workspace.Effects.ChildAdded:Connect(function(Part)
+    if tostring(Part)=='BulletHole'or tostring(Part)=='CharacterHole'then
+        if GUISettings.Weapons.ImpactPoints then
+            Intellect.Weapons:ImpactPoint(Part);
+        end;
+    end;
+end);
+
+Connections['HitboxExtender']=workspace.Characters.ChildAdded:Connect(function(Character)
+    repeat RunService.Stepped:wait()until Character:FindFirstChild'Root';
+    Intellect.Enemies:HitboxExtender();
+end);
 
 function Intellect.Codes:RedeemAllCodes()
     local Codes=syn.request({Url='https://roblox-bad-business.fandom.com/wiki/Codes',Method='GET',Headers={['Content-Type']='application/json'}});
