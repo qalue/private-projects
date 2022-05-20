@@ -15,6 +15,14 @@ setmetatable(Intellect,{
 local TS=require(RepStore.TS);
 TS.Timer:UnbindFromStep'CharacterAnimate';
 
+getgenv().GUISettings={Rounds={Borders=false},Enemies={HitboxExtender=false,HitboxVisibility=false,Radar=false,ESP=false,},Settings={ToggleUIKey='RightShift',AutoSaveConfiguration=false},Character={Noclip=false,InfiniteJump=false,CurrentWalkSpeed=24,SprintSpeed=14,JumpPower=36},Gore={GibEnabled=false,BloodEnabled=false},Weapons={NoSpread=false,KillAll=false,KnifeAura=false,RequireKnife=false,NoRecoil=false,AllWeaponsAuto=false,InfiniteAmmo=false,NoBulletDrop=false,RapidAim=false,RapidFire=false,Aimbot={TriggerBot=false},SilentAim={Enabled=false,Type='Distance',AimPart='Head'}}}
+getgenv().Connections={};
+-->Load Settings
+if not p_call(function()readfile('Intellect.cfg')end)then
+    writefile('Intellect.cfg',HttpService:JSONEncode(GUISettings));
+end;
+GUISettings=HttpService:JSONDecode(readfile'Intellect.cfg');
+
 --> Stupid Synapse X Crash Bypass
 hookfunction(getrenv().PluginManager,function()
     return;
@@ -113,19 +121,15 @@ function Intellect.Enemies:HitboxExtender()
         local Character=Players[i];
         if Character and Character:FindFirstChild'Hitbox'then 
             local Hitbox=Character.Hitbox:GetChildren();
-            if not Character:FindFirstChild'Check'then 
+            if GUISettings.Enemies.HitboxExtender then 
                 for i=1,#Hitbox do 
                     Hitbox[i].Size=Hitbox[i].Size*6;
                     Hitbox[i].BrickColor=BrickColor.new'Really red';
                 end;
-                local Check=Instance.new('ObjectValue',Character)
-                Check.Name='Check';
             else
                 for i=1,#Hitbox do 
-                    print(tostring(Hitbox[i]))
                     Hitbox[i].Size=OriginalHitbox[tostring(Hitbox[i])];
                 end;
-                Character:FindFirstChild'Check':Destroy();
             end;
         end;
     end
