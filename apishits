@@ -3,6 +3,8 @@ local LP,StarterGui=Players.LocalPlayer,game.StarterGui;
 local PlayerUI,Config=LP.PlayerGui
 local C_R,C_C,R_Module,hook_func,fwait,tdelay,lstring,Mouse,Stepped,cframe,vector3,wrkspc,gs,tstring,xp_call,p_call,instance,Heartbeat,Character,MFloor,gc,setthreadidentity=coroutine.resume,coroutine.create,require,hookfunction,task.wait,task.delay,loadstring,LP:GetMouse(),RunService.Stepped,CFrame,Vector3,workspace,getsenv,tostring,xpcall,pcall,Instance,RunService.Heartbeat,LP.Character,math.floor,getconnections,set_thread_identity or setidentity or setthreadcontext or syn.set_thread_identity;
 local Intellect,Intellect_Loaded={},false;
+local Args={...};
+local ConfigName=Args[1];
 
 setmetatable(Intellect,{
     __index=function(_,Index)
@@ -18,10 +20,10 @@ TS.Timer:UnbindFromStep'CharacterAnimate';
 getgenv().GUISettings={Rounds={Borders=false},Enemies={HitboxExtender=false,HitboxVisibility=false,Radar=false,ESP=false,},Settings={ToggleUIKey='RightShift',AutoSaveConfiguration=false},Character={Noclip=false,InfiniteJump=false,CurrentWalkSpeed=24,SprintSpeed=14,JumpPower=36},Gore={GibEnabled=false,BloodEnabled=false},Weapons={NoSpread=false,KillAll=false,KnifeAura=false,RequireKnife=false,NoRecoil=false,AllWeaponsAuto=false,InfiniteAmmo=false,NoBulletDrop=false,RapidAim=false,RapidFire=false,Aimbot={TriggerBot=false},SilentAim={Enabled=false,Type='Distance',AimPart='Head'}}}
 getgenv().Connections={};
 -->Load Settings
-if not p_call(function()readfile('Intellect.cfg')end)then
-    writefile('Intellect.cfg',HttpService:JSONEncode(GUISettings));
+if not p_call(function()readfile(ConfigName)end)then
+    writefile(ConfigName,HttpService:JSONEncode(GUISettings));
 end;
-GUISettings=HttpService:JSONDecode(readfile'Intellect.cfg');
+GUISettings=HttpService:JSONDecode(readfile(ConfigName));
 
 --> Stupid Synapse X Crash Bypass
 hookfunction(getrenv().PluginManager,function()
@@ -307,7 +309,7 @@ function Intellect.Character:IsWalking()
 end;
 
 function Intellect.Settings:SaveConfiguration()
-    writefile('Intellect.cfg',HttpService:JSONEncode(GUISettings));
+    writefile(ConfigName,HttpService:JSONEncode(GUISettings));
 end;
 
 function Intellect.ESP:ApplyBox(Instance1,Colour)
@@ -522,7 +524,6 @@ function Intellect.Weapons:TriggerBot()
         for i=1,#Players do 
             local Player=Players[i];
             if not Player.IsPlayerFriendly and Player.Character and Intellect.Character:GetLocalCharacter()then
-                print(Mouse.Target)
                 if Mouse.Target and Mouse.Target:IsDescendantOf(Player.Character)then 
                     repeat RunService.Stepped:wait()Intellect.Weapons:Shoot(true);until Mouse.Target and Mouse.Target~=Mouse.Target:IsDescendantOf(Player.Character);
                     Intellect.Weapons:Shoot(false);
