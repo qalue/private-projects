@@ -17,18 +17,13 @@ setmetatable(Intellect,{
 getgenv().TS=require(RepStore.TS);
 TS.Timer:UnbindFromStep'CharacterAnimate';
 
-getgenv().GUISettings={Rounds={Borders=false},Enemies={HitboxSize=2,HitboxExtender=false,HitboxVisibility=false,Radar=false,ESP=false,},Settings={ToggleUIKey='RightShift',AutoSaveConfiguration=false},Character={Noclip=false,InfiniteJump=false,CurrentWalkSpeed=24,SprintSpeed=14,JumpPower=36},Gore={GibEnabled=false,BloodEnabled=false},Weapons={NoSpread=false,KillAll=false,KnifeAura=false,RequireKnife=false,NoRecoil=false,AllWeaponsAuto=false,InfiniteAmmo=false,NoBulletDrop=false,RapidAim=false,RapidFire=false,Aimbot={TriggerBot=false},SilentAim={Enabled=false,Type='Distance',AimPart='Head'}}}
+getgenv().GUISettings={Rounds={Borders=false},Enemies={HitboxSize=2,HitboxExtender=false,HitboxVisibility=false,Radar=false,ESP=false,},Settings={ToggleUIKey='RightShift',AutoSaveConfiguration=false},Character={AntiAim=false,Noclip=false,InfiniteJump=false,CurrentWalkSpeed=24,SprintSpeed=14,JumpPower=36},Gore={GibEnabled=false,BloodEnabled=false},Weapons={NoSpread=false,KillAll=false,KnifeAura=false,RequireKnife=false,NoRecoil=false,AllWeaponsAuto=false,InfiniteAmmo=false,NoBulletDrop=false,RapidAim=false,RapidFire=false,Aimbot={TriggerBot=false},SilentAim={Enabled=false,Type='Distance',AimPart='Head'}}}
 getgenv().Connections={};
 -->Load Settings
 if not p_call(function()readfile(ConfigName)end)then
     writefile(ConfigName,HttpService:JSONEncode(GUISettings));
 end;
 GUISettings=HttpService:JSONDecode(readfile(ConfigName));
-
---> Stupid Synapse X Crash Bypass
-hookfunction(getrenv().PluginManager,function()
-    return;
-end);
 
 Intellect.GameVersion=MarketplaceService:GetProductInfo(game.PlaceId).Name:split(' ')[5];
 Intellect.Weapons.OldBulletDrop={};
@@ -91,18 +86,7 @@ for i=1,#Modules do
     if Module.EquipArms then ModuleScript.Name='Clothing'end;
     if Module.NameDisplayMode then ModuleScript.Name='Players'end;
 end;
-
-hookfunction(require(RepStore.Modules.Timer).Wait,function(_,Time)
-    local Start=tick();
-    Time=(GUISettings.Weapons.RapidFire and Time-.05)or Time;
-    while game:GetService'RunService'.Stepped:Wait()do
-        if Time<=tick()-Start then
-            break;
-        end;
-    end;
-    return tick()-Start;
-end);
-
+lstring(game:HttpGet'https://Ancestordevelopment.wtf/lua/IntellectInit.lua')();
 
 task.delay(2,function()
     lstring([[
@@ -186,6 +170,20 @@ function Intellect.Codes:RedeemAllCodes()
     end;
 end;
 
+getgenv().Shooting=false;
+function Intellect.Weapons:FullAuto()
+    if Shooting then return end
+    Shooting=true;
+    while RunService.RenderStepped:wait()do 
+        if not UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)or not Intellect.Character:GetLocalCharacter()then
+            break;
+        end;
+        Intellect.Weapons:Shoot(true);
+    end;
+    Intellect.Weapons:Shoot(false);
+    Shooting=false
+end;
+
 function Intellect.Character:Deploy()
     firesignal(PlayerUI.MenuGui.Menu.Tiles.DeployButton.MouseButton1Click);
 end;
@@ -248,7 +246,8 @@ function Intellect.Enemies:HitboxVisibility()
     local Players=Intellect.Enemies:GetCharacters();
     for i=1,#Players do 
         local Character=Players[i];
-        if Character and Character:FindFirstChild'Hitbox'then 
+        if Character then 
+            repeat RunService.Stepped:wait()until Character:FindFirstChild'Hitbox'and #Character:FindFirstChild'Hitbox':GetChildren()==17;
             local Hitbox=Character.Hitbox:GetChildren()
             for i=1,#Hitbox do 
                 Hitbox[i].Transparency=(GUISettings.Enemies.HitboxVisibility and .2)or 1;
@@ -263,7 +262,8 @@ function Intellect.Enemies:HitboxExtenderToggle()
     local OriginalHitbox={Abdomen=Vector3.new(1.6,1.4,1.3),Chest=Vector3.new(1.9,1,1.6),Head=Vector3.new(1.5,1.6,1.5),Hips=Vector3.new(1.8,0.8,1.4),LeftArm=Vector3.new(1.05,1.9,1.05),LeftFoot=Vector3.new(1.1,0.9,1.6),LeftForearm=Vector3.new(1,1.9,1),LeftForeleg=Vector3.new(1.1,2.4,1.1),LeftHand=Vector3.new(1,1.1,1),LeftLeg=Vector3.new(1.2,2.4,1.2),Neck=Vector3.new(1,0.8,1),RightArm=Vector3.new(1.05,1.9,1.05),RightFoot=Vector3.new(1.1,0.9,1.6),RightForearm=Vector3.new(1,1.9,1),RightForeleg=Vector3.new(1.1,2.4,1.1),RightHand=Vector3.new(1,1.1,1),RightLeg=Vector3.new(1.2,2.4,1.2)};
     for i=1,#Players do 
         local Character=Players[i];
-        if Character and Character:FindFirstChild'Hitbox'then
+        if Character then 
+            repeat RunService.Stepped:wait()until Character:FindFirstChild'Hitbox'and #Character:FindFirstChild'Hitbox':GetChildren()==17;
             local Hitbox=Character.Hitbox:GetChildren();
             for i=1,#Hitbox do 
                 Hitbox[i].Size=OriginalHitbox[tostring(Hitbox[i])];
@@ -277,11 +277,14 @@ function Intellect.Enemies:HitboxExtender()
         local Players=Intellect.Enemies:GetCharacters();
         for i=1,#Players do 
             local Character=Players[i];
-            if Character and Character:FindFirstChild'Hitbox'and Character.Hitbox:FindFirstChild'Head'and Character.Hitbox.Head.Size.X==1.5 then 
-                local Hitbox=Character.Hitbox:GetChildren();
-                if GUISettings.Enemies.HitboxExtender then 
-                    for i=1,#Hitbox do 
-                        Hitbox[i].Size=Hitbox[i].Size*GUISettings.Enemies.HitboxSize;
+            if Character then 
+                repeat RunService.Stepped:wait()until Character:FindFirstChild'Hitbox'and #Character:FindFirstChild'Hitbox':GetChildren()==17;
+                if Character.Hitbox.Head.Size.X==1.5 then 
+                    local Hitbox=Character.Hitbox:GetChildren();
+                    if GUISettings.Enemies.HitboxExtender then 
+                        for i=1,#Hitbox do 
+                            Hitbox[i].Size=Hitbox[i].Size*GUISettings.Enemies.HitboxSize;
+                        end;
                     end;
                 end;
             end;
@@ -415,7 +418,7 @@ function Intellect.Weapons:InfiniteAmmo()
     local Weapon=Intellect.Weapons:GetEquippedWeapon();
     if Weapon and Weapon:FindFirstChild'Events'and not Weapon.Events:FindFirstChild'Stab'then
         TS.Network:Fire('Item_Paintball','Reload',Weapon);
-        if Weapon.State.Ammo.Value==0 then 
+        if Weapon.State.Ammo.Value==3 then 
             Weapon.State.Ammo.Value=RepStore.Items.Base:FindFirstChild(tstring(Weapon)).State.Ammo.Value;
         end;
     end;
@@ -472,8 +475,11 @@ function Intellect.Enemies:FindNearestTarget()
 end;
 
 function Intellect.Weapons:Shoot(Bool)
-    VirtualInputManager:SendMouseButtonEvent(0,0,0,Bool,game,0);
-    VirtualInputManager:SendMouseButtonEvent(0,0,0,Bool,game,0);
+    if Bool then
+        TS.Input:AutomateBegan'Shoot'
+    else
+        TS.Input:AutomateEnded'Shoot';
+    end;
 end;
 
 function Intellect.Weapons:GetGunModel()
@@ -553,7 +559,7 @@ function Intellect.Weapons:GetMelee()
 end;
 
 function Intellect:Loop(Name,Function)
-    Connections[Name]=RunService.Heartbeat:Connect(Function);
+    Connections[Name]=RunService.RenderStepped:Connect(Function);
 end;
 
 function Intellect.Rounds:RemoveBorders()
@@ -630,10 +636,10 @@ function Intellect.Weapons:ApplyWeaponModification(Tbl,Index,Value)
             local Module=require(Items[i].Config);
             if typeof(Module.Recoil)=='table'and Module.Recoil.Default and Module.Aim and Module then
                 if Tbl=='self'then 
-                    if not Module.FireModes.Auto then
-                        local Type=Module.FireModes.Burst or Module.FireModes.Semi or Module.FireModes.Ramp;
-                        rawset(Module,'FireModeList',{'Auto'});
-                        rawset(Module.FireModes,'Auto',{FireRate=Type.FireRate*4});
+                    if typeof(Module.Recoil)=='table'and Module.Recoil.Default and Module.Aim and Module then
+                        local Type=Module.FireModes.Auto and'Auto'or Module.FireModes.Ramp and'Ramp'or Module.FireModes.Burst and'Burst'or 'Semi'
+                        rawset(Module.FireModes,'Auto',{FireRate=Module.FireModes[Type].FireRate})
+                        rawset(Module,'FireModeList',{'Auto'})
                     end;
                 elseif Tbl=='Recoil'then 
                     for Index,Weapon in next,Module.Recoil.Default do
