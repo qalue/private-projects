@@ -17,7 +17,7 @@ setmetatable(Intellect,{
 getgenv().TS=require(RepStore.TS);
 TS.Timer:UnbindFromStep'CharacterAnimate';
 
-getgenv().GUISettings={Rounds={Borders=false},Enemies={HitboxExtender=false,HitboxVisibility=false,Radar=false,ESP=false,},Settings={ToggleUIKey='RightShift',AutoSaveConfiguration=false},Character={Noclip=false,InfiniteJump=false,CurrentWalkSpeed=24,SprintSpeed=14,JumpPower=36},Gore={GibEnabled=false,BloodEnabled=false},Weapons={NoSpread=false,KillAll=false,KnifeAura=false,RequireKnife=false,NoRecoil=false,AllWeaponsAuto=false,InfiniteAmmo=false,NoBulletDrop=false,RapidAim=false,RapidFire=false,Aimbot={TriggerBot=false},SilentAim={Enabled=false,Type='Distance',AimPart='Head'}}}
+getgenv().GUISettings={Rounds={Borders=false},Enemies={HitboxSize=2,HitboxExtender=false,HitboxVisibility=false,Radar=false,ESP=false,},Settings={ToggleUIKey='RightShift',AutoSaveConfiguration=false},Character={Noclip=false,InfiniteJump=false,CurrentWalkSpeed=24,SprintSpeed=14,JumpPower=36},Gore={GibEnabled=false,BloodEnabled=false},Weapons={NoSpread=false,KillAll=false,KnifeAura=false,RequireKnife=false,NoRecoil=false,AllWeaponsAuto=false,InfiniteAmmo=false,NoBulletDrop=false,RapidAim=false,RapidFire=false,Aimbot={TriggerBot=false},SilentAim={Enabled=false,Type='Distance',AimPart='Head'}}}
 getgenv().Connections={};
 -->Load Settings
 if not p_call(function()readfile(ConfigName)end)then
@@ -176,17 +176,13 @@ end);
 Connections['HitboxExtender']=workspace.Characters.ChildAdded:Connect(function(Character)
     repeat RunService.Stepped:wait()until Character:FindFirstChild'Root';
     Intellect.Enemies:HitboxExtender();
+    Intellect.Enemies:HitboxVisibility()
 end);
 
 function Intellect.Codes:RedeemAllCodes()
-    local Codes=syn.request({Url='https://roblox-bad-business.fandom.com/wiki/Codes',Method='GET',Headers={['Content-Type']='application/json'}});
-    Codes=Codes.Body:split('<td>');
-    for Index=1,#Codes do 
-        local Code=Codes[Index];
-        if Index~=1 and Index%2==0 and Index~=26 then 
-            local Code=Code:split('</td>')[1]:split('\n')[1];
-            TS.Network:Invoke('Codes','Redeem',Code);
-        end;
+    local Codes=game:HttpGetAsync'https://roblox-bad-business.fandom.com/wiki/Codes';
+    for Code in Codes:gmatch'<td>([%w\n_]*)</td>'do
+        TS.Network:Invoke('Codes', 'Redeem', Code:gsub('\n',''))
     end;
 end;
 
@@ -255,31 +251,42 @@ function Intellect.Enemies:HitboxVisibility()
         if Character and Character:FindFirstChild'Hitbox'then 
             local Hitbox=Character.Hitbox:GetChildren()
             for i=1,#Hitbox do 
-                Hitbox[i].Transparency=(GUISettings.Enemies.HitboxVisibility and .5)or 1;
+                Hitbox[i].Transparency=(GUISettings.Enemies.HitboxVisibility and .2)or 1;
+                Hitbox[i].BrickColor=BrickColor.new'Really blue';
+            end;
+        end;
+    end;
+end;
+
+function Intellect.Enemies:HitboxExtenderToggle()
+    local Players=Intellect.Enemies:GetCharacters();
+    local OriginalHitbox={Abdomen=Vector3.new(1.6,1.4,1.3),Chest=Vector3.new(1.9,1,1.6),Head=Vector3.new(1.5,1.6,1.5),Hips=Vector3.new(1.8,0.8,1.4),LeftArm=Vector3.new(1.05,1.9,1.05),LeftFoot=Vector3.new(1.1,0.9,1.6),LeftForearm=Vector3.new(1,1.9,1),LeftForeleg=Vector3.new(1.1,2.4,1.1),LeftHand=Vector3.new(1,1.1,1),LeftLeg=Vector3.new(1.2,2.4,1.2),Neck=Vector3.new(1,0.8,1),RightArm=Vector3.new(1.05,1.9,1.05),RightFoot=Vector3.new(1.1,0.9,1.6),RightForearm=Vector3.new(1,1.9,1),RightForeleg=Vector3.new(1.1,2.4,1.1),RightHand=Vector3.new(1,1.1,1),RightLeg=Vector3.new(1.2,2.4,1.2)};
+    for i=1,#Players do 
+        local Character=Players[i];
+        if Character and Character:FindFirstChild'Hitbox'then
+            local Hitbox=Character.Hitbox:GetChildren();
+            for i=1,#Hitbox do 
+                Hitbox[i].Size=OriginalHitbox[tostring(Hitbox[i])];
             end;
         end;
     end;
 end;
 
 function Intellect.Enemies:HitboxExtender()
-    local OriginalHitbox={Abdomen=Vector3.new(1.6,1.4,1.3),Chest=Vector3.new(1.9,1,1.6),Head=Vector3.new(1.5,1.6,1.5),Hips=Vector3.new(1.8,0.8,1.4),LeftArm=Vector3.new(1.05,1.9,1.05),LeftFoot=Vector3.new(1.1,0.9,1.6),LeftForearm=Vector3.new(1,1.9,1),LeftForeleg=Vector3.new(1.1,2.4,1.1),LeftHand=Vector3.new(1,1.1,1),LeftLeg=Vector3.new(1.2,2.4,1.2),Neck=Vector3.new(1,0.8,1),RightArm=Vector3.new(1.05,1.9,1.05),RightFoot=Vector3.new(1.1,0.9,1.6),RightForearm=Vector3.new(1,1.9,1),RightForeleg=Vector3.new(1.1,2.4,1.1),RightHand=Vector3.new(1,1.1,1),RightLeg=Vector3.new(1.2,2.4,1.2)};
-    local Players=Intellect.Enemies:GetCharacters();
-    for i=1,#Players do 
-        local Character=Players[i];
-        if Character and Character:FindFirstChild'Hitbox'then 
-            local Hitbox=Character.Hitbox:GetChildren();
-            if GUISettings.Enemies.HitboxExtender then 
-                for i=1,#Hitbox do 
-                    Hitbox[i].Size=Hitbox[i].Size*6;
-                    Hitbox[i].BrickColor=BrickColor.new'Really red';
-                end;
-            else
-                for i=1,#Hitbox do 
-                    Hitbox[i].Size=OriginalHitbox[tostring(Hitbox[i])];
+    p_call(function()
+        local Players=Intellect.Enemies:GetCharacters();
+        for i=1,#Players do 
+            local Character=Players[i];
+            if Character and Character:FindFirstChild'Hitbox'and Character.Hitbox:FindFirstChild'Head'and Character.Hitbox.Head.Size.X==1.5 then 
+                local Hitbox=Character.Hitbox:GetChildren();
+                if GUISettings.Enemies.HitboxExtender then 
+                    for i=1,#Hitbox do 
+                        Hitbox[i].Size=Hitbox[i].Size*GUISettings.Enemies.HitboxSize;
+                    end;
                 end;
             end;
         end;
-    end
+    end);
 end;
 
 function Intellect.Aimbot:GetRandomPart(Character)
@@ -509,7 +516,7 @@ end;
 
 function Intellect.Weapons:ImpactPoint(Part)
     local ImpactPoint=Instance.new('Part',Part);
-    Part.Decal:Destroy()
+    pcall(function()Part.Decal:Destroy()end)
     ImpactPoint.BrickColor=BrickColor.new('Really red');
     ImpactPoint.Size=Part.Size/2;
     ImpactPoint.CFrame=Part.CFrame;
@@ -519,15 +526,13 @@ end;
 
 function Intellect.Weapons:TriggerBot()
     p_call(function()
-        local Players=Intellect.Players:GetLoadedCharacters();
+        local Players=Intellect.Enemies:GetCharacters();
         Mouse.TargetFilter=Intellect.Weapons:GetGunModel();
         for i=1,#Players do 
-            local Player=Players[i];
-            if not Player.IsPlayerFriendly and Player.Character and Intellect.Character:GetLocalCharacter()then
-                if Mouse.Target and Mouse.Target:IsDescendantOf(Player.Character)then 
-                    repeat RunService.Stepped:wait()Intellect.Weapons:Shoot(true);until Mouse.Target and Mouse.Target~=Mouse.Target:IsDescendantOf(Player.Character);
-                    Intellect.Weapons:Shoot(false);
-                end;
+            local Character=Players[i];
+            if Character and Mouse.Target and Mouse.Target:IsDescendantOf(Character)then
+                Intellect.Weapons:Shoot(true);
+                Intellect.Weapons:Shoot(false);
             end;
         end;
     end);
@@ -548,7 +553,7 @@ function Intellect.Weapons:GetMelee()
 end;
 
 function Intellect:Loop(Name,Function)
-    Connections[Name]=RunService.Stepped:Connect(Function);
+    Connections[Name]=RunService.Heartbeat:Connect(Function);
 end;
 
 function Intellect.Rounds:RemoveBorders()
@@ -605,6 +610,7 @@ function Intellect.Weapons:KnifeTarget(Player)
         NearestCharacter=NearestCharacter or Player;
         local Health=NearestCharacter.Health.Value;
         TS.Network:Fire('Item_Melee','StabBegin',Intellect.Weapons:GetMelee());
+        fwait(.2);
         TS.Network:Fire('Item_Melee','Stab',Intellect.Weapons:GetMelee(),NearestCharacter.Hitbox.Head,Vector3.new(),Vector3.new());
         fwait(.2);
         if NearestCharacter.Health.Value~=Health then
@@ -624,9 +630,10 @@ function Intellect.Weapons:ApplyWeaponModification(Tbl,Index,Value)
             local Module=require(Items[i].Config);
             if typeof(Module.Recoil)=='table'and Module.Recoil.Default and Module.Aim and Module then
                 if Tbl=='self'then 
-                    rawset(Module,'FireModeList',{'Auto'})
-                    if Module.FireModes.Semi then
-                        rawset(Module.FireModes,'Auto',{FireRate=Module.FireModes.Semi.FireRate});
+                    if not Module.FireModes.Auto then
+                        local Type=Module.FireModes.Burst or Module.FireModes.Semi or Module.FireModes.Ramp;
+                        rawset(Module,'FireModeList',{'Auto'});
+                        rawset(Module.FireModes,'Auto',{FireRate=Type.FireRate*4});
                     end;
                 elseif Tbl=='Recoil'then 
                     for Index,Weapon in next,Module.Recoil.Default do
