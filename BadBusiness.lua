@@ -61,9 +61,14 @@ uilib:Section("Weapon")
 uilib:Button("No Recoil",function()
     API.Weapons:ApplyWeaponModification'Recoil'
 end)
-uilib:Button("All Weapons Auto",function()
-    API.Weapons:ApplyWeaponModification'self'
-end)
+uilib:Toggle("All Weapons Auto",function(state)
+    GUISettings.Weapons.AllWeaponsAuto = state
+    if state then
+        API:Loop('FullAuto',API.Weapons.FullAuto)
+    else
+        API:Disconnect('FullAuto')
+    end
+end,GUISettings.Weapons.AllWeaponsAuto)
 uilib:Toggle("Silent Aim",function(state)
     GUISettings.Weapons.SilentAim.Enabled = state
 end,GUISettings.Weapons.SilentAim.Enabled)
