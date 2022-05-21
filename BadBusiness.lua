@@ -9,7 +9,40 @@ GUISettings.Weapons.SilentAim.AimPart = "Head"
 GUISettings.Weapons.SilentAim.AimType = "Distance"
 
 uilib:CreateWindow()
-uilib:Section("Misc",true)
+
+uilib:Section("Player",true)
+
+uilib:Button("Deploy", function()
+    API.Character:Deploy();
+end)
+uilib:Button("Reset Character",function()
+    API.Character:ResetCharacter();
+end)
+uilib:Input("Set Walkspeed","Walkspeed",false,true,function(inputtedText)
+    if inputtedText then
+        GUISettings.Character.CurrentWalkSpeed = tonumber(inputtedText) or 24
+    end
+end,GUISettings.Character.CurrentWalkSpeed)
+uilib:Input("Set Jump Power","Jump Power",false,true,function(inputtedText)
+    if inputtedText then
+        GUISettings.Character.JumpPower = tonumber(inputtedText) or 36
+    end
+end,GUISettings.Character.JumpPower)
+uilib:Toggle("ESP",function(state)
+    if state then
+        GUISettings.Enemies.ESP = state;
+        API:Loop('ESP',API.ESP.Apply);
+    else
+        API.ESP:Remove();
+        API:Disconnect'ESP';
+    end
+end,GUISettings.Enemies.ESP)
+uilib:Toggle("Infinite Jump",function(state)
+    GUISettings.Character.InfiniteJump = state
+end,GUISettings.Character.InfiniteJump)
+
+uilib:Section("Misc")
+
 uilib:Bind("Toggle UI",function(key)
     if key then
         GUISettings.Settings.ToggleUIKey=key;
@@ -22,7 +55,9 @@ end)
 uilib:Button("Redeem Codes",function()
     API.Codes.RedeemAllCodes()
 end)
+
 uilib:Section("Weapon")
+
 uilib:Button("No Recoil",function()
     API.Weapons:ApplyWeaponModification'Recoil'
 end)
@@ -43,22 +78,3 @@ end,GUISettings.Weapons.InfiniteAmmo)
 uilib:Toggle("Rapid Fire",function(state)
     GUISettings.Weapons.RapidFire = state
 end,GUISettings.Weapons.RapidFire)
-uilib:Section("Player")
-uilib:Button("Deploy", function()
-    API.Character:Deploy();
-end)
-uilib:Button("Reset Character",function()
-    API.Character:ResetCharacter();
-end)
-uilib:Toggle("ESP",function(state)
-    if state then
-        GUISettings.Enemies.ESP = state;
-        API:Loop('ESP',API.ESP.Apply);
-    else
-        API.ESP:Remove();
-        API:Disconnect'ESP';
-    end
-end,GUISettings.Enemies.ESP)
-uilib:Toggle("Infinite Jump",function(state)
-    GUISettings.Character.InfiniteJump = state
-end,GUISettings.Character.InfiniteJump)
