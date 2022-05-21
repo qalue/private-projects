@@ -10,7 +10,22 @@ GUISettings.Weapons.SilentAim.AimType = "Distance"
 
 uilib:CreateWindow()
 
-uilib:Section("Player",true)
+uilib:Section("Misc",true)
+
+uilib:Bind("Toggle UI",function(key)
+    if key then
+        GUISettings.Settings.ToggleUIKey=key;
+    end;
+    game.CoreGui.Eclipse.Enabled = not game.CoreGui.Eclipse.Enabled
+end,GUISettings.Settings.ToggleUIKey)
+uilib:Button("Save Configuration",function()
+    API.Settings:SaveConfiguration()
+end)
+uilib:Button("Redeem Codes",function()
+    API.Codes.RedeemAllCodes()
+end)
+
+uilib:Section("Player")
 
 uilib:Button("Deploy", function()
     API.Character:Deploy();
@@ -40,21 +55,6 @@ end,GUISettings.Enemies.ESP)
 uilib:Toggle("Infinite Jump",function(state)
     GUISettings.Character.InfiniteJump = state
 end,GUISettings.Character.InfiniteJump)
-
-uilib:Section("Misc")
-
-uilib:Bind("Toggle UI",function(key)
-    if key then
-        GUISettings.Settings.ToggleUIKey=key;
-    end;
-    game.CoreGui.Eclipse.Enabled = not game.CoreGui.Eclipse.Enabled
-end,GUISettings.Settings.ToggleUIKey)
-uilib:Button("Save Configuration",function()
-    API.Settings:SaveConfiguration()
-end)
-uilib:Button("Redeem Codes",function()
-    API.Codes.RedeemAllCodes()
-end)
 
 uilib:Section("Weapon")
 
