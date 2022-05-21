@@ -18,6 +18,9 @@ uilib:Bind("Toggle UI",function(key)
     end;
     game.CoreGui.Eclipse.Enabled = not game.CoreGui.Eclipse.Enabled
 end,GUISettings.Settings.ToggleUIKey)
+uilib:Button("Rejoin Game",function()
+    API.Game:RejoinExperience()
+end)
 uilib:Button("Save Configuration",function()
     API.Settings:SaveConfiguration()
 end)
