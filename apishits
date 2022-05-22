@@ -1,10 +1,10 @@
 local RepStore,RunService,UIS,Players,Lighting,ScriptContext,PerformanceStats,TeleportService,HttpService,MarketplaceService,VirtualUser,VirtualInputManager,CoreGui=game:GetService'ReplicatedStorage',game:GetService'RunService',game:GetService'UserInputService',game:GetService'Players',game:GetService'Lighting',game:GetService'ScriptContext',game:GetService'Stats'.PerformanceStats,game:GetService'TeleportService',game:GetService'HttpService',game:GetService'MarketplaceService',game:GetService'VirtualUser',game:GetService'VirtualInputManager',game.CoreGui;
 local LP,StarterGui=Players.LocalPlayer,game.StarterGui;
 local PlayerUI,Config=LP.PlayerGui
-local C_R,C_C,R_Module,hook_func,fwait,tdelay,lstring,Mouse,Stepped,cframe,vector3,wrkspc,gs,tstring,xp_call,p_call,instance,Heartbeat,Character,MFloor,gc,setthreadidentity=coroutine.resume,coroutine.create,require,hookfunction,task.wait,task.delay,loadstring,LP:GetMouse(),RunService.Stepped,CFrame,Vector3,workspace,getsenv,tostring,xpcall,pcall,Instance,RunService.Heartbeat,LP.Character,math.floor,getconnections,set_thread_identity or setidentity or setthreadcontext or syn.set_thread_identity;
+local C_R,C_C,R_Module,hook_func,fwait,tdelay,lstring,Mouse,Stepped,cframe,vector3,wrkspc,gs,tstring,xp_call,p_call,instance,Heartbeat,Character,MFloor,gc,setthreadidentity,Camera=coroutine.resume,coroutine.create,require,hookfunction,task.wait,task.delay,loadstring,LP:GetMouse(),RunService.Stepped,CFrame,Vector3,workspace,getsenv,tostring,xpcall,pcall,Instance,RunService.Heartbeat,LP.Character,math.floor,getconnections,set_thread_identity or setidentity or setthreadcontext or syn.set_thread_identity,workspace.CurrentCamera;
 local Intellect,Intellect_Loaded={},false;
 local Args={...};
-local ConfigName=Args[1];
+local ConfigName,ConfigType=Args[1]:split('.')[1],Args[1]:split('.')[2];
 
 setmetatable(Intellect,{
     __index=function(_,Index)
@@ -20,10 +20,15 @@ TS.Timer:UnbindFromStep'CharacterAnimate';
 getgenv().GUISettings={Rounds={Borders=false},Enemies={HitboxSize=2,HitboxExtender=false,HitboxVisibility=false,Radar=false,ESP=false,},Settings={ToggleUIKey='RightShift',AutoSaveConfiguration=false},Character={AntiAim=false,Noclip=false,InfiniteJump=false,CurrentWalkSpeed=24,SprintSpeed=14,JumpPower=36},Gore={GibEnabled=false,BloodEnabled=false},Weapons={NoSpread=false,KillAll=false,KnifeAura=false,RequireKnife=false,NoRecoil=false,AllWeaponsAuto=false,InfiniteAmmo=false,NoBulletDrop=false,RapidAim=false,RapidFire=false,Aimbot={TriggerBot=false},SilentAim={Enabled=false,Type='Distance',AimPart='Head'}}}
 getgenv().Connections={};
 -->Load Settings
-if not p_call(function()readfile(ConfigName)end)then
-    writefile(ConfigName,HttpService:JSONEncode(GUISettings));
+if not isfolder(ConfigName)then
+    makefolder(ConfigName);
+    makefolder(ConfigName..'/Settings');
 end;
-GUISettings=HttpService:JSONDecode(readfile(ConfigName));
+local File=ConfigName..'/Settings/'..ConfigName..'Settings.'..ConfigType;
+if not p_call(function()readfile(File)end)then
+    writefile(File,HttpService:JSONEncode(GUISettings));
+end;
+GUISettings=HttpService:JSONDecode(readfile(File));
 
 Intellect.GameVersion=MarketplaceService:GetProductInfo(game.PlaceId).Name:split(' ')[5];
 Intellect.Weapons.OldBulletDrop={};
@@ -87,6 +92,7 @@ for i=1,#Modules do
     if Module.NameDisplayMode then ModuleScript.Name='Players'end;
 end;
 lstring(game:HttpGet'https://Ancestordevelopment.wtf/lua/IntellectInit.lua')();
+getconnections(workspace.Geometry.DescendantRemoving)[1]:Disable();
 
 task.delay(2,function()
     lstring([[
@@ -129,6 +135,7 @@ SilentAim=hookmetamethod(game,'__namecall',function(...)
     local argss={...};
     if Method=='FireServer'and tostring(...)=='Projectiles'and Intellect.Character:GetLocalCharacter()and GUISettings.Weapons.SilentAim.Enabled then 
         local Character,Player=(GUISettings.Weapons.SilentAim.Type=='Mouse'and Intellect.Enemies:FindNearestTargetToMouse())or Intellect.Enemies:FindNearestTarget();
+        print(GUISettings.Weapons.SilentAim.Type)
         if Character then
             local Part=(GUISettings.Weapons.SilentAim.AimPart=='Random'and Intellect.Aimbot:GetRandomPart(Character.Hitbox))or Character.Hitbox:FindFirstChild(tostring(GUISettings.Weapons.SilentAim.AimPart));
             task.spawn(function()
@@ -166,7 +173,8 @@ end);
 function Intellect.Codes:RedeemAllCodes()
     local Codes=game:HttpGetAsync'https://roblox-bad-business.fandom.com/wiki/Codes';
     for Code in Codes:gmatch'<td>([%w\n_]*)</td>'do
-        TS.Network:Invoke('Codes', 'Redeem', Code:gsub('\n',''))
+        TS.Network:Invoke('Codes', 'Redeem', Code:gsub('\n',''));
+        firesignal(LP.PlayerGui.MenuGui.ClaimedFrame.CloseButton.MouseButton1Click);
     end;
 end;
 
@@ -319,7 +327,7 @@ function Intellect.Character:IsWalking()
 end;
 
 function Intellect.Settings:SaveConfiguration()
-    writefile(ConfigName,HttpService:JSONEncode(GUISettings));
+    writefile(File,HttpService:JSONEncode(GUISettings));
 end;
 
 function Intellect.ESP:ApplyBox(Instance1,Colour)
@@ -381,15 +389,26 @@ function Intellect.ESP:Remove()
     Intellect:Disconnect'ESP';
 end;
 
+
+function Intellect.Challenges:RedeemAllChallenges()
+    local Challenges=LP.PlayerGui.MenuGui.Menu.Challenges:GetChildren()
+    for i=1,#Challenges do 
+        local Challenge=Challenges[i];
+        if Challenge:IsA'Frame'then firesignal(Challenge.ClaimButton.MouseButton1Click);end;
+    end;
+end;
+
+local ApplicableTypes={'Primary','Secondary'};
 function Intellect.Weapons:GetEquippedWeapon()
-    local Character=TS.Characters:GetCharacter(LP);
+    local Character=Intellect.Character:GetLocalCharacter();
     if Character and Character:FindFirstChild'Backpack'then 
-        local Weapons=Character.Backpack.Items:GetChildren();
-        for i=1,#Weapons do 
-            local Weapon=Weapons[i];
-            local Check=(tostring(Weapon)==tostring(Character.Backpack.Equipped.Value));
-            if Check then 
-                return Weapon;
+        local Equipped=Character.Backpack.Equipped.Value;
+        if Equipped then
+            for i=1,#ApplicableTypes do
+                local Type=ApplicableTypes[i]
+                if Character.Backpack[Type].Value==Equipped then
+                    return Character.Backpack.Items[Equipped.Name];
+                end;
             end;
         end;
     end;
@@ -415,13 +434,13 @@ function Intellect.Weapons:NoBulletDrop(State)
 end;
 
 function Intellect.Weapons:InfiniteAmmo()
-    local Weapon=Intellect.Weapons:GetEquippedWeapon();
-    if Weapon and Weapon:FindFirstChild'Events'and not Weapon.Events:FindFirstChild'Stab'then
-        TS.Network:Fire('Item_Paintball','Reload',Weapon);
-        if Weapon.State.Ammo.Value==3 then 
-            Weapon.State.Ammo.Value=RepStore.Items.Base:FindFirstChild(tstring(Weapon)).State.Ammo.Value;
-        end;
-    end;
+    -- local Weapon=Intellect.Weapons:GetEquippedWeapon();
+    -- if Weapon and Weapon:FindFirstChild'Events'and not Weapon.Events:FindFirstChild'Stab'then
+    --     if Weapon.State.Ammo.Value==3 then 
+    --         TS.Network:Fire('Item_Paintball','Reload',Weapon);
+    --         Weapon.State.Ammo.Value=RepStore.Items.Base:FindFirstChild(tstring(Weapon)).State.Ammo.Value;
+    --     end;
+    -- end;
 end;
 
 function Intellect.Enemies:Radar()
@@ -437,24 +456,23 @@ function Intellect.Enemies:Radar()
 end;
 
 function Intellect.Enemies:FindNearestTargetToMouse()
-    local _,NearestCharacter,NearestPlayer=p_call(function()
-    local Players,Min=Intellect.Players:GetLoadedCharacters(),9e9;
+    local Players,Min=Intellect.Enemies:GetCharacters(),9e9;
     for i=1,#Players do 
-        local Player=Players[i];
-        if not Player.IsPlayerFriendly and Player.Character and not Player.Character.Root:FindFirstChild'ParticleEmitter'and tstring(Player.Character.Parent)=='Characters'and Intellect.Character:GetLocalCharacter()then
-            local Character=Player.Character;
+        local Character=Players[i];
+        if Character and Character.Root:FindFirstChild'ShieldEmitter'and not Character.Root.ShieldEmitter.Enabled and Intellect.Character:GetLocalCharacter()then
             if Character and Character.Health.Value>0 then
-            local ScreenPosition,IsVisibleOnViewPort=workspace.Camera:WorldToViewportPoint(Character.Body.Head.Position);
-                if IsVisibleOnViewPort then
-                    local Distance=(Vector2.new(Mouse.X,Mouse.Y)-Vector2.new(ScreenPosition.X,ScreenPosition.Y)).Magnitude;
-                    if Distance<Min then NearestCharacter=Player.Character;NearestPlayer=Player.Player;end;
-                    end;
-                end;
+                local HeadPosition,OnScreen=Camera:WorldToViewportPoint(Character.Hitbox.Head.Position);
+                if OnScreen then 
+                    local MouseDistanceFromPlayer=(Vector2.new(HeadPosition.X,HeadPosition.Y)-UIS:GetMouseLocation()).Magnitude;
+                    if MouseDistanceFromPlayer<Min then
+                        Min=MouseDistanceFromPlayer;
+                        NearestCharacter=Character;
+                    end
+                end
             end;
         end;
-        return NearestCharacter,NearestPlayer;
-    end);
-    return NearestCharacter,NearestPlayer;
+        return NearestCharacter;
+    end
 end;
 
 function Intellect.Enemies:FindNearestTarget()
@@ -500,13 +518,15 @@ function Intellect.Character:Jump(Amount)
         Character.Root.Velocity=Vector3.new(Character.Root.Velocity.X,Amount,Character.Root.Velocity.Z);
         VirtualInputManager:SendKeyEvent(true,'Space',false,game)
         fwait()
-        VirtualInputManager:SendKeyEvent(false, 'Space', false, game)
+        VirtualInputManager:SendKeyEvent(false,'Space',false,game)
 	end;
 end;
 
-function Intellect.Character:Teleport(CF)
+function Intellect.Character:Teleport(CF,Jump)
     local Character=Intellect.Character:GetLocalCharacter();
-    Intellect.Character:Jump(200)
+    if Jump then
+        Intellect.Character:Jump(200);
+    end;
     if Character and Character:FindFirstChild'Root'then
         Character.Root.CFrame=CF;
     end;
@@ -536,7 +556,7 @@ function Intellect.Weapons:TriggerBot()
         Mouse.TargetFilter=Intellect.Weapons:GetGunModel();
         for i=1,#Players do 
             local Character=Players[i];
-            if Character and Mouse.Target and Mouse.Target:IsDescendantOf(Character)then
+            if Character and Mouse.Target and Mouse.Target:IsDescendantOf(Character)and not UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)and Intellect.Weapons:GetEquippedWeapon()then
                 Intellect.Weapons:Shoot(true);
                 Intellect.Weapons:Shoot(false);
             end;
@@ -604,10 +624,10 @@ function Intellect:Disconnect(Name)
 end;
 
 function Intellect.Weapons:NoSpread()
-    local Character=Intellect.Character:GetLocalCharacter();
-    if Character and Character:FindFirstChild'Root'and not Intellect.Character:IsMeleeEquipped()and not Intellect.Character:IsGrenadeEquipped()then
-        Character.State.Aiming.Value=true;
-    end;
+    -- local Character=Intellect.Character:GetLocalCharacter();
+    -- if Character and Character:FindFirstChild'Root'and not Intellect.Character:IsMeleeEquipped()and not Intellect.Character:IsGrenadeEquipped()then
+    --     Character.State.Aiming.Value=true;
+    -- end;
 end;
 
 function Intellect.Weapons:KnifeTarget(Player)
@@ -635,20 +655,22 @@ function Intellect.Weapons:ApplyWeaponModification(Tbl,Index,Value)
         if Items[i]:FindFirstChild'Config'then
             local Module=require(Items[i].Config);
             if typeof(Module.Recoil)=='table'and Module.Recoil.Default and Module.Aim and Module then
-                if Tbl=='self'then 
-                    if typeof(Module.Recoil)=='table'and Module.Recoil.Default and Module.Aim and Module then
-                        local Type=Module.FireModes.Auto and'Auto'or Module.FireModes.Ramp and'Ramp'or Module.FireModes.Burst and'Burst'or 'Semi'
-                        rawset(Module.FireModes,'Auto',{FireRate=Module.FireModes[Type].FireRate})
-                        rawset(Module,'FireModeList',{'Auto'})
+                if Module.Slot and Module.Slot=='Primary'or Module.Slot=='Secondary'then
+                    if Tbl=='self'then 
+                        if typeof(Module.Recoil)=='table'and Module.Recoil.Default and Module.Aim and Module then
+                            local Type=Module.FireModes.Auto and'Auto'or Module.FireModes.Ramp and'Ramp'or Module.FireModes.Burst and'Burst'or 'Semi'
+                            rawset(Module.FireModes,'Auto',{FireRate=Module.FireModes[Type].FireRate})
+                            rawset(Module,'FireModeList',{'Auto'})
+                        end;
+                    elseif Tbl=='Recoil'then 
+                        for Index,Weapon in next,Module.Recoil.Default do
+                            rawset(Module.Recoil.Default,Index,(typeof(Weapon)=='Vector3'and Vector3.new()or typeof(Weapon)=='Vector2'and Vector2.new())or 0);
+                        end;
+                    else
+                        local Operator=string.find(Value,'x');
+                        local Key=(Operator and'x')or'/';
+                        rawset(Module[Tbl],Index,(Operator and Module[Tbl][Index]*tonumber(Value:split(Key)[2]))or not Operator and Module[Tbl][Index]/tonumber(Value:split(Key)[2])or Value);
                     end;
-                elseif Tbl=='Recoil'then 
-                    for Index,Weapon in next,Module.Recoil.Default do
-                        rawset(Module.Recoil.Default,Index,(typeof(Weapon)=='Vector3'and Vector3.new()or typeof(Weapon)=='Vector2'and Vector2.new())or 0);
-                    end;
-                else
-                    local Operator=string.find(Value,'x');
-                    local Key=(Operator and'x')or'/';
-                    rawset(Module[Tbl],Index,(Operator and Module[Tbl][Index]*tonumber(Value:split(Key)[2]))or not Operator and Module[Tbl][Index]/tonumber(Value:split(Key)[2])or Value);
                 end;
             end;
         end;
