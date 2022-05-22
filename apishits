@@ -19,6 +19,8 @@ TS.Timer:UnbindFromStep'CharacterAnimate';
 
 getgenv().GUISettings={Rounds={Borders=false},Enemies={HitboxSize=2,HitboxExtender=false,HitboxVisibility=false,Radar=false,ESP=false,},Settings={ToggleUIKey='RightShift',AutoSaveConfiguration=false},Character={AntiAim=false,Noclip=false,InfiniteJump=false,CurrentWalkSpeed=24,SprintSpeed=14,JumpPower=36},Gore={GibEnabled=false,BloodEnabled=false},Weapons={NoSpread=false,KillAll=false,KnifeAura=false,RequireKnife=false,NoRecoil=false,AllWeaponsAuto=false,InfiniteAmmo=false,NoBulletDrop=false,RapidAim=false,RapidFire=false,Aimbot={TriggerBot=false},SilentAim={Enabled=false,Type='Distance',AimPart='Head'}}}
 getgenv().Connections={};
+
+
 -->Load Settings
 if not isfolder(ConfigName)then
     makefolder(ConfigName);
@@ -434,13 +436,13 @@ function Intellect.Weapons:NoBulletDrop(State)
 end;
 
 function Intellect.Weapons:InfiniteAmmo()
-    -- local Weapon=Intellect.Weapons:GetEquippedWeapon();
-    -- if Weapon and Weapon:FindFirstChild'Events'and not Weapon.Events:FindFirstChild'Stab'then
-    --     if Weapon.State.Ammo.Value==3 then 
-    --         TS.Network:Fire('Item_Paintball','Reload',Weapon);
-    --         Weapon.State.Ammo.Value=RepStore.Items.Base:FindFirstChild(tstring(Weapon)).State.Ammo.Value;
-    --     end;
-    -- end;
+    local Weapon=Intellect.Weapons:GetEquippedWeapon();
+    if Weapon and Weapon:FindFirstChild'Events'and not Weapon.Events:FindFirstChild'Stab'then
+        if Weapon.State.Ammo.Value==3 then 
+            TS.Network:Fire('Item_Paintball','Reload',Weapon);
+            Weapon.State.Ammo.Value=RepStore.Items.Base:FindFirstChild(tstring(Weapon)).State.Ammo.Value;
+        end;
+    end;
 end;
 
 function Intellect.Enemies:Radar()
