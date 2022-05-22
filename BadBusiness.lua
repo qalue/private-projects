@@ -1,3 +1,5 @@
+es (80 sloc)  3.78 KB
+   
 local uilib=loadstring(game:HttpGet'https://raw.githubusercontent.com/qalue/projects/main/uilibrary.lua')();
 getgenv().API=loadstring(game:HttpGet'https://raw.githubusercontent.com/qalue/private-projects/main/apishits')("Eclipse.cfg");
 
@@ -41,6 +43,11 @@ uilib:Input("Set Walkspeed","Walkspeed",false,true,function(inputtedText)
         GUISettings.Character.CurrentWalkSpeed = tonumber(inputtedText) or 24
     end
 end,GUISettings.Character.CurrentWalkSpeed)
+uilib:Input("Set Sprint Speed","Sprint Speed",false,true,function(inputtedText)
+    if inputtedText then
+        GUISettings.Character.SprintSpeed = tonumber(inputtedText) or 14
+    end
+end,GUISettings.Character.SprintSpeed)
 uilib:Input("Set Jump Power","Jump Power",false,true,function(inputtedText)
     if inputtedText then
         GUISettings.Character.JumpPower = tonumber(inputtedText) or 36
