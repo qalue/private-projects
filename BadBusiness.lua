@@ -1,5 +1,3 @@
-es (80 sloc)  3.78 KB
-   
 local uilib=loadstring(game:HttpGet'https://raw.githubusercontent.com/qalue/projects/main/uilibrary.lua')();
 getgenv().API=loadstring(game:HttpGet'https://raw.githubusercontent.com/qalue/private-projects/main/apishits')("Eclipse.cfg");
 
