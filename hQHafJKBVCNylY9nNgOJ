@@ -72,7 +72,7 @@ end)
 uilib:Toggle("All Weapons Auto",function(state)
     GUISettings.Weapons.AllWeaponsAuto = state
     if state then
-        API:Loop('FullAuto',API.Weapons.FullAuto)
+        API:Loop('FullAuto', API.Weapons.FullAuto)
     else
         API:Disconnect('FullAuto')
     end
