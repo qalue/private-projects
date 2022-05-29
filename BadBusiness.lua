@@ -1,4 +1,4 @@
-local uilib=loadstring(game:HttpGet'https://raw.githubusercontent.com/qalue/projects/main/uilibrary.lua')();
+local uilib=loadstring(game:HttpGet'https://raw.githubusercontent.com/qalue/projects/main/EclipseUILibrary.lua')();
 getgenv().API=loadstring(game:HttpGet'https://raw.githubusercontent.com/qalue/private-projects/main/apishits')("Eclipse.cfg");
 
 local RepStore,RunService,UIS,Players,Lighting,ScriptContext,PerformanceStats,TeleportService,HttpService,MarketplaceService,VirtualUser,VirtualInputManager,CoreGui=game:GetService'ReplicatedStorage',game:GetService'RunService',game:GetService'UserInputService',game:GetService'Players',game:GetService'Lighting',game:GetService'ScriptContext',game:GetService'Stats'.PerformanceStats,game:GetService'TeleportService',game:GetService'HttpService',game:GetService'MarketplaceService',game:GetService'VirtualUser',game:GetService'VirtualInputManager',game.CoreGui;
@@ -10,7 +10,7 @@ GUISettings.Weapons.SilentAim.AimType = "Distance"
 
 uilib:CreateWindow()
 
-uilib:Section("Misc",true)
+uilib:Section("Misc")
 
 uilib:Bind("Toggle UI",function(key)
     if key then
