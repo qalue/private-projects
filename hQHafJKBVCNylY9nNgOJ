@@ -10,48 +10,48 @@ GUISettings.Weapons.SilentAim.AimType = "Distance"
 
 uilib:CreateWindow()
 
-uilib:Section("Misc",true)
+uilib:CreateSection("Misc",true)
 
-uilib:Bind("Toggle UI",function(key)
+uilib:CreateBind("Toggle UI",function(key)
     if key then
         GUISettings.Settings.ToggleUIKey=key;
     end;
     game.CoreGui.Eclipse.Enabled = not game.CoreGui.Eclipse.Enabled
 end,GUISettings.Settings.ToggleUIKey)
-uilib:Button("Rejoin Game",function()
+uilib:CreateButton("Rejoin Game",function()
     API.Game:RejoinExperience()
 end)
-uilib:Button("Save Configuration",function()
+uilib:CreateButton("Save Configuration",function()
     API.Settings:SaveConfiguration()
 end)
-uilib:Button("Redeem Codes",function()
+uilib:CreateButton("Redeem Codes",function()
     API.Codes.RedeemAllCodes()
 end)
 
-uilib:Section("Player")
+uilib:CreateSection("Player")
 
-uilib:Button("Deploy", function()
+uilib:CreateButton("Deploy", function()
     API.Character:Deploy();
 end)
-uilib:Button("Reset Character",function()
+uilib:CreateButton("Reset Character",function()
     API.Character:ResetCharacter();
 end)
-uilib:Input("Set Walkspeed","Walkspeed",false,true,function(inputtedText)
+uilib:CreateInput("Set Walkspeed","Walkspeed",false,true,function(inputtedText)
     if inputtedText then
         GUISettings.Character.CurrentWalkSpeed = tonumber(inputtedText) or 24
     end
 end,GUISettings.Character.CurrentWalkSpeed)
-uilib:Input("Set Sprint Speed","Sprint Speed",false,true,function(inputtedText)
+uilib:CreateInput("Set Sprint Speed","Sprint Speed",false,true,function(inputtedText)
     if inputtedText then
         GUISettings.Character.SprintSpeed = tonumber(inputtedText) or 14
     end
 end,GUISettings.Character.SprintSpeed)
-uilib:Input("Set Jump Power","Jump Power",false,true,function(inputtedText)
+uilib:CreateInput("Set Jump Power","Jump Power",false,true,function(inputtedText)
     if inputtedText then
         GUISettings.Character.JumpPower = tonumber(inputtedText) or 36
     end
 end,GUISettings.Character.JumpPower)
-uilib:Toggle("ESP",function(state)
+uilib:CreateToggle("ESP",function(state)
     if state then
         GUISettings.Enemies.ESP = state;
         API:Loop('ESP',API.ESP.Apply);
@@ -60,16 +60,16 @@ uilib:Toggle("ESP",function(state)
         API:Disconnect'ESP';
     end
 end,GUISettings.Enemies.ESP)
-uilib:Toggle("Infinite Jump",function(state)
+uilib:CreateToggle("Infinite Jump",function(state)
     GUISettings.Character.InfiniteJump = state
 end,GUISettings.Character.InfiniteJump)
 
-uilib:Section("Weapon")
+uilib:CreateSection("Weapon")
 
-uilib:Button("No Recoil",function()
+uilib:CreateButton("No Recoil",function()
     API.Weapons:ApplyWeaponModification'Recoil'
 end)
-uilib:Toggle("All Weapons Auto",function(state)
+uilib:CreateToggle("All Weapons Auto",function(state)
     GUISettings.Weapons.AllWeaponsAuto = state
     if state then
         API:Loop('FullAuto', API.Weapons.FullAuto)
@@ -77,10 +77,10 @@ uilib:Toggle("All Weapons Auto",function(state)
         API:Disconnect('FullAuto')
     end
 end,GUISettings.Weapons.AllWeaponsAuto)
-uilib:Toggle("Silent Aim",function(state)
+uilib:CreateToggle("Silent Aim",function(state)
     GUISettings.Weapons.SilentAim.Enabled = state
 end,GUISettings.Weapons.SilentAim.Enabled)
-uilib:Toggle("Infinite Ammo",function(state)
+uilib:CreateToggle("Infinite Ammo",function(state)
     GUISettings.Weapons.InfiniteAmmo = state
     if state == true then
         API:Loop('Infinite Ammo',API.Weapons.InfiniteAmmo);
@@ -88,6 +88,6 @@ uilib:Toggle("Infinite Ammo",function(state)
         API:Disconnect'Infinite Ammo';
     end
 end,GUISettings.Weapons.InfiniteAmmo)
-uilib:Toggle("Rapid Fire",function(state)
+uilib:CreateToggle("Rapid Fire",function(state)
     GUISettings.Weapons.RapidFire = state 
 end,GUISettings.Weapons.RapidFire)
