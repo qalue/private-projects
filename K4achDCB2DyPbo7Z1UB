@@ -330,7 +330,7 @@ function lib:CreateBind(bindText,script,default)
     local bindText=Instance.new("TextLabel")
     bindText.AnchorPoint=Vector2.new(0.5,0.5)
     bindText.BackgroundTransparency=1
-    bindText.Text="[NONE]"
+    bindText.Text=(default and default) or "[NONE]"
     bindText.Position=UDim2.new(0.858,0,0.5,0)
     bindText.Size=UDim2.new(0.3,0,0,25)
     bindText.Font=Enum.Font.Gotham
