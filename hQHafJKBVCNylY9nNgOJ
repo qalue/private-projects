@@ -10,7 +10,7 @@ GUISettings.Weapons.SilentAim.AimType = "Distance"
 
 uilib:CreateWindow()
 
-uilib:CreateSection("Misc",true)
+uilib:CreateSection("Misc")
 
 uilib:CreateBind("Toggle UI",function(key)
     if key then
