@@ -1,0 +1,270 @@
+-- Wild West
+
+--> Block shitty executors
+local executor=identifyexecutor();
+local supported={'Synapse X','ScriptWare','Krnl'};
+local isSupported=table.find(supported,executor)~=nil;
+assert(isSupported,'Executor Not Supported');
+
+local Eclipse,GUISettings,Connections={},{Horse={Boosts=5,BoostModifier=false,Ragdoll=true},Character={Ragdoll=true,FallDamage=true,InfiniteStamina=false,RemoveRollCooldown=false,FastRoll=false,SprintKey='LeftShift',Walkspeed=8,JumpPower=50,SprintSpeed=16},UI={CustomDeathMessages=false}},{}
+local repStore,runService,UIS,players,lighting,coreGui=game:GetService'ReplicatedStorage',game:GetService'RunService',game:GetService'UserInputService',game:GetService'Players',game:GetService'Lighting',game.CoreGui
+local localPlayer,starterGui,shared=players.LocalPlayer,game.StarterGui,require(repStore.SharedModules.Global)
+local MountAnimal,deathMessages=require(repStore.Modules.World.WildLife.WildLife.Animal),require(repStore.Modules.UI.CharacterUI).Update
+local AnimalModule=require(repStore.Modules.World.WildLife.WildLife.Animal)
+
+Eclipse.CurrentVersion="v0.2.3b-DEV"
+
+if not getgenv().sharedbackup then
+    getgenv().sharedbackup={
+        HorseRagdoll=AnimalModule.RagdollBoth;
+        DeathMessages=getupvalue(require(repStore.Modules.UI.CharacterUI).Update,46);
+        GetClockTime=shared.SharedDayCycle['GetClockTime'];
+        LowerStamina=shared.PlayerCharacter['LowerStamina'];
+        Ragdoll=shared.PlayerCharacter['Ragdoll'];
+        RainEnable=shared.Rain['Enable'];
+        RainDisable=shared.Rain['Disable'];
+        AttemptMount=MountAnimal['AttemptMount'];
+    };
+end
+
+setmetatable(Eclipse,{
+    __index=function(_,Index)
+        Eclipse[Index]={};
+        return Eclipse[Index]
+    end;
+});
+
+if not rawget(getgenv(),'EventTable')then
+    local gc=getgc(true);
+    getgenv().NetworkIDS,getgenv().Atmosphere={},game.Lighting.Atmosphere;
+    local WindowKey=workspace["WORKSPACE_Geometry"]["REGION_Plains"]["Bronze City"].Buildings["General Store"]:FindFirstChild'Glass'.GlassId.Value;
+    for i=1,#gc do 
+        local Event=gc[i];
+        if typeof(Event)=='table'then 
+            if rawget(Event,'UnMountAnimal')and rawget(Event,'Respawn')then 
+                getgenv().FunctionTable=Event;
+            end;
+            if rawget(Event,'RespawnTriggered')then 
+                getgenv().EventTable=Event;
+            end;
+            if rawget(Event,'ToggleSelfRagdoll')then 
+                getgenv().RagdollTable=Event;
+            end;
+            if rawget(Event,WindowKey)then 
+                getgenv().GlassTable=Event;
+            end;
+            if rawget(Event,'NetworkId')then 
+                NetworkIDS[#NetworkIDS+1]=Event;
+            end;
+        end;
+    end;
+end;
+
+function Eclipse:GetNetworkDataByKey(Key)
+	local LastID;
+    for _,ID in next,NetworkIDS do 
+        if tostring(ID.gui)==Key then 
+            LastID=ID;
+        end;
+    end;
+	return LastID;
+end;
+
+
+loadstring([[
+	local ArgsF={...};
+	local GUISettings,Eclipse=ArgsF[1],ArgsF[2];
+	local NoFallDamage;
+	NoFallDamage=hookmetamethod(game,'__namecall',function(...)
+		local Method=getnamecallmethod();
+		local Args={...};
+		if Method=='FireServer' and Eclipse.Loaded then 
+            if tostring(...)=='DamageSelf'and not GUISettings.Character.FallDamage then 
+		       	return;
+		    end;
+            if tostring(...)=='ACRoll'and GUISettings.Character.InfiniteStamina then 
+                return;
+            end;
+		end;setnamecallmethod(Method);
+		return NoFallDamage(unpack(Args));
+	end);
+]])(GUISettings,Eclipse);
+
+local MountAnimal=require(repStore.Modules.World.WildLife.WildLife.Animal)
+
+--// Network
+function Eclipse:FireServer(remote,...)
+	EventTable[remote].Remote:FireServer(...);
+end;
+
+function Eclipse:InvokeServer(remote,...)
+	FunctionTable[remote].Remote:InvokeServer(...);
+end;
+
+--// Required Functions
+function Eclipse:Loop(Name,Function)
+	Connections[Name]=runService.RenderStepped:Connect(Function)
+end;
+
+--// Animal
+MountAnimal.AttemptMount=function(...)
+    local args={...};
+    getgenv().HorseStats=args[1];
+    getgenv().DefaultBoost=(DefaultBoost~=HorseStats.MaxBoosts and HorseStats.MaxBoosts) or DefaultBoost
+    --getgenv().DefaultSpeed=(DefaultSpeed~=HorseStats.CanterSpeed and HorseStats.CanterSpeed) or DefaultSpeed
+    rawset(HorseStats,'MaxBoosts',(GUISettings.Horse.BoostModifier and GUISettings.Horse.Boosts) or DefaultBoost)
+    rawset(HorseStats,'Boosts',(GUISettings.Horse.BoostModifier and GUISettings.Horse.Boosts) or DefaultBoost)
+    return sharedbackup.AttemptMount(...)
+end;
+
+function Eclipse.Animals:SetHorseStats()
+    if HorseStats then
+        rawset(HorseStats,'MaxBoosts',(GUISettings.Horse.BoostModifier and GUISettings.Horse.Boosts) or DefaultBoost)
+        rawset(HorseStats,'Boosts',(GUISettings.Horse.BoostModifier and GUISettings.Horse.Boosts) or DefaultBoost)
+    end
+end
+
+--// Character
+function Eclipse.Character:IsDead()
+	return shared.PlayerCharacter.IsDead;
+end;
+
+function Eclipse.Character:Die()
+	GUISettings.Character.FallDamage=true;
+    Eclipse:FireServer('DamageSelf',100);
+	GUISettings.Character.FallDamage=false;
+end;
+
+function Eclipse.Character:ToggleRagdoll()
+    shared.PlayerCharacter.Ragdoll=(not GUISettings.Character.Ragdoll and function()end) or sharedbackup.Ragdoll;
+end
+
+function Eclipse.Character:InfiniteStamina()
+    shared.PlayerCharacter.LowerStamina=(GUISettings.Character.InfiniteStamina and function()end)or sharedbackup.LowerStamina;
+end
+
+--// Animals
+function Eclipse.Animals:GetCurrentHorse()
+    local animals=workspace.WORKSPACE_Entities.Animals:GetChildren();
+    for i=1,#animals do 
+        local animal=animals[i];
+        if animal.Owner.Value==game.Players.LocalPlayer then 
+            return animal;
+        end;
+    end;
+end;
+
+function Eclipse.Animals:MountCurrentHorse()
+	local horse=self:GetCurrentHorse();
+	if not horse then return false,'No Entity Found' end;
+	if Eclipse.Character:IsDead()then return false,'Player Is Dead'end
+	if(localPlayer.Character.Head.CFrame.p-horse.Head.CFrame.p).Magnitude>=12 then return false,'Entity Is Too Far From Character'end;
+	Eclipse:FireServer('MountAnimal',horse);
+	return true;
+end;
+
+function Eclipse.Animals:UnmountCurrentHorse()
+    Eclipse:InvokeServer('UnMountAnimal',localPlayer.Character.Head.CFrame.p)
+end;
+
+function Eclipse.Animals:ToggleRagdoll()
+    if shared.WildLife.RidingAnimal then
+        Eclipse.Animals:UnmountCurrentHorse();
+        Eclipse.Animals:MountCurrentHorse();
+    end;
+    AnimalModule.RagdollBoth=(GUISettings.Horse.Ragdoll and sharedbackup.HorseRagdoll)or function()end;
+end;
+
+--// UI
+function Eclipse.UI:DeathMessages()
+    setupvalue(deathMessages,46,(GUISettings.UI.CustomDeathMessages and{'bruh died whilst exploiting','you need aimlabs?','💀 (you)','that sucks','consider using an aimtrainer','LOL!'})or sharedbackup.DeathMessages)
+end;
+
+Eclipse:Loop('Character',function()
+    local humanoid=require(localPlayer.PlayerScripts.PlayerModule.ControlModule.VRNavigation):GetLocalHumanoid();
+    if humanoid then
+        Walkspeed=GUISettings.Character.Walkspeed;
+        if UIS:IsKeyDown(Enum.KeyCode[GUISettings.Character.SprintKey])then
+            Walkspeed=GUISettings.Character.Walkspeed+GUISettings.Character.SprintSpeed;
+        end;
+        if Walkspeed>27 then Walkspeed=27 end;
+        humanoid.WalkSpeed=Walkspeed;
+        humanoid.JumpPower=GUISettings.Character.JumpPower;
+        if GUISettings.Character.RemoveRollCooldown then
+            rawset(shared.PlayerCharacter,'RollDebounce',false);
+        end;
+        rawset(shared.PlayerCharacter,'RollSpeed',(GUISettings.Character.FastRoll and 1) or .75);
+    end;
+end);
+
+
+local EclipseUI=loadstring(game:HttpGet('https://raw.githubusercontent.com/EclipseUtilities/Eclipse/main/UI%20Libraries/EclipseUILibrary.lua',true))()
+
+EclipseUI:CreateWindow()
+--// Misc UI
+EclipseUI:CreateSection("Misc")
+EclipseUI:CreateToggle("Custom Death Messages",function(state)
+    GUISettings.UI.CustomDeathMessages=state
+    Eclipse.UI:DeathMessages()
+end)
+--// Character UI
+EclipseUI:CreateSection("Character")
+EclipseUI:CreateToggle("Disable Fall Damage",function(state)
+    GUISettings.Character.FallDamage=not state
+end)
+EclipseUI:CreateToggle("Infinite Stamina",function(state)
+    GUISettings.Character.InfiniteStamina=state
+    Eclipse.Character:InfiniteStamina()
+end)
+EclipseUI:CreateToggle("Fast Roll",function(state)
+    GUISettings.Character.FastRoll=state
+end)
+EclipseUI:CreateToggle("No Roll Cooldown",function(state)
+    GUISettings.Character.RemoveRollCooldown=state
+end)
+EclipseUI:CreateToggle("Disable Ragdoll",function(state)
+    GUISettings.Character.Ragdoll=not state
+    Eclipse.Character:ToggleRagdoll()
+end)
+--// Horse UI
+EclipseUI:CreateSection("Horse")
+EclipseUI:CreateToggle("Disable Horse Ragdoll",function(state)
+    GUISettings.Horse.Ragdoll=not state
+    Eclipse.Animals:ToggleRagdoll()
+end)
+EclipseUI:CreateInput("Amount of Boosts","Modify Boost Amount",function(boosts)
+    GUISettings.Horse.Boosts=boosts
+    Eclipse.Animals:SetHorseStats()
+end,true)
+EclipseUI:CreateToggle("Enable Boost Modifier",function(state)
+    GUISettings.Horse.BoostModifier=state
+    Eclipse.Animals:SetHorseStats()
+end)
+--// Settings UI
+EclipseUI:CreateSection("Settings")
+EclipseUI:CreateBind("Toggle UI",function(key)
+    if key then
+        GUISettings.Settings.ToggleUIKey=key;
+    end;
+    game.CoreGui.Eclipse.Enabled = not game.CoreGui.Eclipse.Enabled
+end)
+--// Information UI
+EclipseUI:CreateSection("Information")
+EclipseUI:CreateLabel("Version: "..Eclipse.CurrentVersion)
+EclipseUI:CreateLabel("UI Library by Eclipse")
+EclipseUI:CreateLabel("Scripted by adam#8765")
+
+Connections['DestroyEclipse']=coreGui.ChildRemoved:Connect(function(GUI)
+    if tostring(GUI)=='Eclipse'then 
+        rawset(shared.PlayerCharacter,'RollSpeed',.75);rawset(shared.PlayerCharacter,'RollDebounce',true);
+		Eclipse.Loaded=false
+        for _,Connection in next,Connections do 
+            pcall(function()
+                Connection:Disconnect();
+            end);
+        end;
+    end;
+end);
+
+Eclipse.Loaded=true
+shared.UIHandler:GiveTopTitle({text='Loaded Eclipse',subtitle=Eclipse.CurrentVersion,textcolor='Gold',subtitlecolor='Gold'});
