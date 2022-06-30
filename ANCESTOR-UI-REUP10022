@@ -1,3 +1,5 @@
+local Library={};
+local HelpSections={}
 function Library:Initiate()
     CurrentTab=nil
     if game.CoreGui:FindFirstChild'Ancestor'then 
@@ -1757,3 +1759,4 @@ function Library:Initiate()
     UICorner_2.CornerRadius=UDim.new(0,6)
     return AncestorFunctions;
 end;
+return Library
