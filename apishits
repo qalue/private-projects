@@ -93,7 +93,7 @@ for i=1,#Modules do
     if Module.EquipArms then ModuleScript.Name='Clothing'end;
     if Module.NameDisplayMode then ModuleScript.Name='Players'end;
 end;
-lstring(game:HttpGet'https://Ancestordevelopment.wtf/lua/IntellectInit.lua')();
+--lstring(game:HttpGet'https://Ancestordevelopment.wtf/lua/IntellectInit.lua')();
 getconnections(workspace.Geometry.DescendantRemoving)[1]:Disable();
 
 task.delay(2,function()
