@@ -94,10 +94,8 @@ for i=1,#Modules do
     if Module.NameDisplayMode then ModuleScript.Name='Players'end;
 end;
 lstring([[
-local PluginManagerInterface=Instance.new('Part');
-PluginManagerInterface.Name='PluginManagerInterface';
 hookfunction(getrenv().PluginManager,function()
-    return PluginManagerInterface;
+    return nil;
 end);]])();
 getconnections(workspace.Geometry.DescendantRemoving)[1]:Disable();
 
