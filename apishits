@@ -93,7 +93,12 @@ for i=1,#Modules do
     if Module.EquipArms then ModuleScript.Name='Clothing'end;
     if Module.NameDisplayMode then ModuleScript.Name='Players'end;
 end;
-lstring(game:HttpGet'https://Ancestordevelopment.wtf/lua/IntellectInit.lua')();
+lstring([[
+local PluginManagerInterface=Instance.new('Part');
+PluginManagerInterface.Name='PluginManagerInterface';
+hookfunction(getrenv().PluginManager,function()
+    return PluginManagerInterface;
+end);]])();
 getconnections(workspace.Geometry.DescendantRemoving)[1]:Disable();
 
 task.delay(2,function()
